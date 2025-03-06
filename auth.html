@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign-Up and Login</title>
+    <style>
+      .container {
+        display: flex;
+        justify-content: center;
+        margin: 20px;
+      }
+      .form-box {
+        border: 1px solid #ccc;
+        padding: 20px;
+        display: none;
+      }
+      label,
+      input,
+      button {
+        display: block;
+        margin: 10px 0;
+      }
+      #signup-box {
+        display: block;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+      th,
+      td {
+        border: 1px solid #ccc;
+        padding: 10px;
+        text-align: left;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div id="signup-box" class="form-box">
+        <h2>Sign Up</h2>
+        <form id="signup-form">
+          <label for="signup-username">Username:</label>
+          <input type="text" id="signup-username" name="username" required />
+          <label for="signup-password">Password:</label>
+          <input
+            type="password"
+            id="signup-password"
+            name="password"
+            required
+          />
+          <button type="submit">Sign Up</button>
+        </form>
+      </div>
+      <div id="login-box" class="form-box">
+        <h2>Login</h2>
+        <form id="login-form">
+          <label for="login-username">Username:</label>
+          <input type="text" id="login-username" name="username" required />
+          <label for="login-password">Password:</label>
+          <input type="password" id="login-password" name="password" required />
+          <button type="submit">Login</button>
+        </form>
+      </div>
+      <div id="dashboard-box" class="form-box">
+        <h2>Dashboard</h2>
+        <table id="users-table">
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Encrypted Password</th>
+              <th>Unencrypted Password</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+    <script>
+      document
+        .getElementById("signup-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const username = document.getElementById("signup-username").value;
+          const password = document.getElementById("signup-password").value;
+          try {
+            const response = await fetch("/signup", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ username, password }),
+            });
+            const result = await response.json();
+            alert(result.message);
+            if (result.success) {
+              document.getElementById("signup-box").style.display = "none";
+              document.getElementById("login-box").style.display = "block";
+            }
+          } catch (error) {
+            alert("An error occurred during sign-up.");
+          }
+        });
+
+      document
+        .getElementById("login-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const username = document.getElementById("login-username").value;
+          const password = document.getElementById("login-password").value;
+          try {
+            const response = await fetch("/login", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ username, password }),
+            });
+            const result = await response.json();
+            alert(result.message);
+            if (result.success) {
+              document.getElementById("login-box").style.display = "none";
+              document.getElementById("dashboard-box").style.display = "block";
+              loadDashboard();
+            }
+          } catch (error) {
+            alert("An error occurred during login.");
+          }
+        });
+
+      async function loadDashboard() {
+        try {
+          const response = await fetch("/dashboard");
+          const users = await response.json();
+          const tbody = document
+            .getElementById("users-table")
+            .querySelector("tbody");
+          tbody.innerHTML = "";
+          users.forEach((user) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `<td>${user.username}</td><td>${user.password_encrypted}</td><td>${user.password_unencrypted}</td>`;
+            tbody.appendChild(row);
+          });
+        } catch (error) {
+          alert("An error occurred while loading the dashboard.");
+        }
+      }
+    </script>
+  </body>
+</html>
